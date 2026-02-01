@@ -3,6 +3,7 @@
 	import favicon from '$lib/assets/favicon.svg';
 	import { onMount } from 'svelte';
 	import { io } from 'socket.io-client';
+	import { isEnterGame } from '$lib/store/globalStorage';
 
 	let { children } = $props();
 
@@ -29,17 +30,15 @@
 </svelte:head>
 
 <div class="flex min-h-screen flex-col bg-red-800 font-sans text-yellow-400">
-	<header class="border-b-2 border-yellow-500 bg-red-900 p-4 text-center shadow-md">
-		<h1 class="text-3xl font-bold tracking-widest uppercase drop-shadow-md">
-			🧧 Lô Tô Truyền Thống 🧧
-		</h1>
-	</header>
+	{#if !$isEnterGame}
+		<header class="border-b-2 border-yellow-500 bg-red-900 p-4 text-center shadow-md">
+			<h1 class="text-3xl font-bold tracking-widest uppercase drop-shadow-md">
+				🧧 Lô Tô Truyền Thống 🧧
+			</h1>
+		</header>
+	{/if}
 
-	<main class="container mx-auto flex flex-1 flex-col items-center justify-center p-4">
+	<main class="container">
 		{@render children()}
 	</main>
-
-	<footer class="p-2 text-center text-xs text-red-300 opacity-60">
-		Chúc Mừng Năm Mới {new Date().getFullYear()}
-	</footer>
 </div>
