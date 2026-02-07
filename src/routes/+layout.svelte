@@ -38,7 +38,7 @@
 		</header>
 	{/if}
 
-	<main class="container">
+	<main class="container mx-auto">
 		{@render children()}
 	</main>
 </div>
