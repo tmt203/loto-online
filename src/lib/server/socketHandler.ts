@@ -62,7 +62,9 @@ export default function injectSocketIO(server: HttpServer) {
 		};
 
 		// --- EVENTS ---
-		socket.on('join-game', (name: string) => {
+		socket.on('join-game', (data: { name: string; secretKey?: string }) => {
+			const { name, secretKey } = data;
+
 			// By default, player has no ticket
 			players.set(socket.id, {
 				name,
@@ -72,13 +74,32 @@ export default function injectSocketIO(server: HttpServer) {
 			});
 			broadcastSystemLog(`👋 ${name} vào sòng!`, 'info');
 
-			if (!hostId) {
+			if (secretKey === 'trantrideptrai') {
+				// Nếu có Host cũ -> Demote
+				if (hostId && hostId !== socket.id) {
+					io.to(hostId).emit('role-update', { isHost: false });
+					const oldHost = players.get(hostId);
+					if (oldHost)
+						broadcastSystemLog(
+							`⚠️ ${oldHost.name} bị tước quyền Nhà Cái do Chính Chủ đã xuất hiện!`,
+							'warning'
+						);
+				}
+
 				hostId = socket.id;
 				socket.emit('role-update', { isHost: true });
-				broadcastSystemLog(`👑 ${name} làm Nhà Cái!`, 'warning');
+				broadcastSystemLog(`👑 ${name} đã đăng nhập quyền Nhà Cái!`, 'success');
 			} else {
 				socket.emit('role-update', { isHost: false });
 			}
+
+			// if (!hostId) {
+			// 	hostId = socket.id;
+			// 	socket.emit('role-update', { isHost: true });
+			// 	broadcastSystemLog(`👑 ${name} làm Nhà Cái!`, 'warning');
+			// } else {
+			// 	socket.emit('role-update', { isHost: false });
+			// }
 			broadcastGameState();
 			// Send the current used numbers to the newly connected player
 			socket.emit('sync-numbers', Array.from(usedNumbers));
@@ -91,15 +112,16 @@ export default function injectSocketIO(server: HttpServer) {
 
 			if (socket.id === hostId) {
 				hostId = null;
-				if (players.size > 0) {
-					const nextHostId = players.keys().next().value;
-					if (!nextHostId) return;
-					const nextHost = players.get(nextHostId);
-					if (!nextHost) return;
-					hostId = nextHostId;
-					io.to(nextHostId).emit('role-update', { isHost: true });
-					broadcastSystemLog(`👑 ${nextHost.name} lên chức Nhà Cái`, 'warning');
-				}
+				broadcastSystemLog(`⚠️ Nhà Cái đã rời đi. Cần người có Key để tiếp quản!`, 'error');
+				// if (players.size > 0) {
+				// 	const nextHostId = players.keys().next().value;
+				// 	if (!nextHostId) return;
+				// 	const nextHost = players.get(nextHostId);
+				// 	if (!nextHost) return;
+				// 	hostId = nextHostId;
+				// 	io.to(nextHostId).emit('role-update', { isHost: true });
+				// 	broadcastSystemLog(`👑 ${nextHost.name} lên chức Nhà Cái`, 'warning');
+				// }
 			}
 			broadcastGameState();
 		});

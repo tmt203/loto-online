@@ -96,7 +96,8 @@
 			return showToast('⚠️ Lỗi Tên', 'Nhập cái tên cho vui nhà vui cửa đi bạn!', 'error');
 		isJoined = true;
 		$isEnterGame = true;
-		socket.emit('join-game', playerName);
+		const secret = localStorage.getItem('loto_secret');
+		socket.emit('join-game', { name: playerName, secretKey: secret });
 	}
 
 	function hostOpenBetting() {
