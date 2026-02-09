@@ -8,6 +8,7 @@ interface PlayerData {
 	name: string;
 	balance: number;
 	hasTicket: boolean;
+	isApproved: boolean;
 }
 
 // State Global
@@ -35,6 +36,7 @@ export default function injectSocketIO(server: HttpServer) {
 				name: data.name,
 				balance: data.balance,
 				hasTicket: data.hasTicket,
+				isApproved: data.isApproved,
 				isHost: id === hostId
 			}));
 
@@ -62,7 +64,12 @@ export default function injectSocketIO(server: HttpServer) {
 		// --- EVENTS ---
 		socket.on('join-game', (name: string) => {
 			// By default, player has no ticket
-			players.set(socket.id, { name, balance: INITIAL_BALANCE, hasTicket: false });
+			players.set(socket.id, {
+				name,
+				balance: INITIAL_BALANCE,
+				hasTicket: false,
+				isApproved: false
+			});
 			broadcastSystemLog(`👋 ${name} vào sòng!`, 'info');
 
 			if (!hostId) {
@@ -121,6 +128,7 @@ export default function injectSocketIO(server: HttpServer) {
 			// Reset ticket status for all players
 			for (let [_, p] of players) {
 				p.hasTicket = false;
+				p.isApproved = false;
 			}
 
 			io.emit('game-reset'); // Clear numbers on client
@@ -137,6 +145,7 @@ export default function injectSocketIO(server: HttpServer) {
 			if (p.balance >= currentTicketPrice) {
 				p.balance -= currentTicketPrice;
 				p.hasTicket = true;
+				p.isApproved = false; // Mặc định chưa được duyệt
 				currentPot += currentTicketPrice; // Add money to pot
 
 				broadcastGameState();
@@ -146,9 +155,45 @@ export default function injectSocketIO(server: HttpServer) {
 				// Cho phép nợ (âm tiền) để chơi cho vui
 				p.balance -= currentTicketPrice;
 				p.hasTicket = true;
+				p.isApproved = false; // Mặc định chưa được duyệt
 				currentPot += currentTicketPrice;
 				broadcastGameState();
 				broadcastSystemLog(`💸 ${p.name} "báo" quá, âm tiền vẫn mua vé!`, 'error');
+			}
+		});
+
+		socket.on('host-approve-player', (playerId: string) => {
+			if (socket.id !== hostId) return;
+			const player = players.get(playerId);
+			if (player && player.hasTicket && !player.isApproved) {
+				player.isApproved = true;
+				broadcastGameState();
+				// broadcastSystemLog(`✅ ${player.name} đã được duyệt vào chơi!`, 'success');
+			}
+		});
+
+		socket.on('host-revoke-player', (playerId: string) => {
+			if (socket.id !== hostId) return;
+			const player = players.get(playerId);
+			if (player && player.hasTicket) {
+				if (player.isApproved) {
+					// Nếu đang được duyệt -> Chuyển về trạng thái chờ duyệt (không hoàn tiền yet)
+					player.isApproved = false;
+					broadcastGameState();
+					// broadcastSystemLog(`⚠️ ${player.name} bị hạ cấp xuống hàng chờ.`, 'warning');
+				} else {
+					// Nếu đang ở hàng chờ -> Hoàn tiền và kick
+					player.balance += currentTicketPrice;
+					currentPot -= currentTicketPrice;
+					player.hasTicket = false;
+					player.isApproved = false;
+
+					broadcastGameState();
+					broadcastSystemLog(
+						`❌ ${player.name} bị từ chối/kicked và được hoàn tiền vé.`,
+						'warning'
+					);
+				}
 			}
 		});
 
@@ -180,9 +225,9 @@ export default function injectSocketIO(server: HttpServer) {
 			if (!player) return;
 
 			// Check if player has a ticket
-			if (!player.hasTicket) {
+			if (!player.hasTicket || !player.isApproved) {
 				socket.emit('check-fail');
-				broadcastSystemLog(`⛔ ${player.name} chưa mua vé mà đòi KINH! Gian lận!`, 'error');
+				broadcastSystemLog(`⛔ ${player.name} chưa được duyệt/mua vé mà đòi KINH!`, 'error');
 				return;
 			}
 
@@ -226,6 +271,7 @@ export default function injectSocketIO(server: HttpServer) {
 			// Collect all ticket of players
 			for (const [_, player] of players) {
 				player.hasTicket = false;
+				player.isApproved = false;
 			}
 
 			io.emit('game-reset'); // Client xoá lịch sử số trên màn hình

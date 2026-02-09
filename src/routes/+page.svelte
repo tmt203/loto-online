@@ -12,6 +12,7 @@
 		balance: number;
 		isHost: boolean;
 		hasTicket: boolean;
+		isApproved: boolean;
 	};
 
 	type GameState = 'IDLE' | 'BETTING' | 'PLAYING';
@@ -137,6 +138,14 @@
 		confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
 	}
 
+	function hostApprove(playerId: string) {
+		socket?.emit('host-approve-player', playerId);
+	}
+
+	function hostRevoke(playerId: string) {
+		socket?.emit('host-revoke-player', playerId);
+	}
+
 	$effect(() => {
 		if (messages.length && chatBoxRef) chatBoxRef.scrollTop = chatBoxRef.scrollHeight;
 	});
@@ -186,7 +195,7 @@
 
 <div
 	class="flex w-full flex-col overflow-hidden bg-red-800 {isJoined
-		? 'h-screen'
+		? 'h-dvh'
 		: 'h-[calc(100%-70px)]'}"
 >
 	{#if !isJoined}
@@ -210,19 +219,20 @@
 			</div>
 		</div>
 	{:else}
-		<div class="flex h-full w-full flex-col overflow-hidden text-center lg:flex-row">
+		<div class="flex h-full w-full flex-col overflow-hidden text-center sm:flex-row">
 			<div
-				class="z-30 flex w-full flex-none flex-col border-b-2 border-yellow-600 bg-red-900 shadow-xl lg:h-full lg:w-1/4 lg:border-r-2 lg:border-b-0"
+				class="z-30 flex w-full flex-none flex-col border-b-2 border-yellow-600 bg-red-900 shadow-xl sm:h-full sm:w-1/4 sm:border-r-2 sm:border-b-0"
 			>
-				<div class="flex items-center justify-between gap-2 p-2 lg:flex-col lg:gap-6 lg:p-6">
+				<div class="flex items-center justify-between gap-2 p-2 sm:flex-col sm:gap-6 sm:p-6">
 					<div
-						class="flex min-w-20 flex-col items-center justify-center rounded-lg border border-yellow-500/50 bg-black/40 px-3 py-1 lg:w-full lg:py-2"
+						class="flex min-w-20 flex-col items-center justify-center rounded-lg border border-yellow-500/50 bg-black/40 px-3 py-1 sm:w-full sm:py-2"
 					>
-						<span class="text-[10px] tracking-widest text-yellow-200 uppercase lg:text-xs"
+						<span
+							class="text-[10px] tracking-widest text-yellow-200 uppercase sm:text-xs lg:text-sm"
 							>Hũ Vàng</span
 						>
 						<span
-							class="text-lg font-black text-yellow-400 drop-shadow-[0_0_5px_rgba(250,204,21,0.8)] lg:text-4xl"
+							class="text-lg font-black text-yellow-400 drop-shadow-[0_0_5px_rgba(250,204,21,0.8)] sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl"
 						>
 							💰 {currentPot}k
 						</span>
@@ -231,20 +241,22 @@
 					<div class="relative">
 						{#if currentNumber}
 							<div
-								class="flex h-12 w-12 animate-bounce items-center justify-center rounded-full border-2 border-white bg-yellow-400 shadow-[0_0_20px_rgba(250,204,21,0.6)] lg:h-32 lg:w-32 lg:border-4"
+								class="flex h-20 w-20 animate-bounce items-center justify-center rounded-full border-4 border-white bg-yellow-400 shadow-[0_0_20px_rgba(250,204,21,0.6)] sm:h-24 sm:w-24 sm:border-4 md:h-28 md:w-28 lg:h-32 lg:w-32"
 							>
-								<span class="text-2xl font-black text-red-900 lg:text-7xl">{currentNumber}</span>
+								<span class="text-4xl font-black text-red-900 sm:text-5xl md:text-6xl lg:text-7xl"
+									>{currentNumber}</span
+								>
 							</div>
 						{:else}
 							<div
-								class="flex h-12 w-12 items-center justify-center rounded-full border-2 border-yellow-600 bg-red-950 text-[10px] text-yellow-500 italic lg:h-32 lg:w-32 lg:text-sm"
+								class="flex h-20 w-20 items-center justify-center rounded-full border-4 border-yellow-600 bg-red-950 text-xs text-yellow-500 italic sm:h-24 sm:w-24 sm:text-sm md:h-28 md:w-28 lg:h-32 lg:w-32"
 							>
 								Chờ...
 							</div>
 						{/if}
 					</div>
 
-					<div class="flex-1 overflow-hidden px-2 lg:hidden">
+					<div class="flex-1 overflow-hidden px-2 sm:hidden">
 						<div class="glass-scrollbar mask-gradient flex gap-1 overflow-x-auto pb-1">
 							{#each [...history].reverse() as num}
 								<span
@@ -255,27 +267,27 @@
 						</div>
 					</div>
 
-					<div class="flex shrink-0 items-center gap-2 lg:w-full lg:flex-col lg:gap-3">
+					<div class="flex shrink-0 items-center gap-2 sm:w-full sm:flex-col sm:gap-3">
 						<button
 							onclick={() => (showRanking = true)}
-							class="rounded-full bg-yellow-500 p-2 text-red-900 hover:bg-yellow-400 lg:hidden"
+							class="rounded-full bg-yellow-500 p-2 text-red-900 hover:bg-yellow-400 sm:hidden"
 							>🏆</button
 						>
 
 						{#if isHost && gameState === 'IDLE'}
 							<div
-								class="flex items-center gap-1 rounded bg-black/30 p-1 lg:w-full lg:justify-center lg:p-3"
+								class="flex items-center gap-1 rounded bg-black/30 p-1 sm:w-full sm:justify-center sm:p-3"
 							>
 								<input
 									type="number"
 									bind:value={inputPrice}
-									class="w-10 rounded bg-white px-1 py-1 text-center text-sm font-bold text-black lg:w-20 lg:text-lg"
+									class="w-10 rounded bg-white px-1 py-1 text-center text-sm font-bold text-black sm:w-20 sm:text-lg"
 									min="1"
 								/>
-								<span class="text-xs text-yellow-500 lg:text-base">k</span>
+								<span class="text-xs text-yellow-500 sm:text-base">k</span>
 								<button
 									onclick={hostOpenBetting}
-									class="ml-1 rounded bg-blue-600 px-2 py-1 text-xs font-bold text-white hover:bg-blue-500 lg:ml-2 lg:px-4 lg:py-2 lg:text-base"
+									class="ml-1 rounded bg-blue-600 px-2 py-1 text-xs font-bold text-white hover:bg-blue-500 sm:ml-2 sm:px-4 sm:py-2 sm:text-base"
 									>Mở</button
 								>
 							</div>
@@ -285,13 +297,13 @@
 							{#if isHost}
 								<button
 									onclick={callNextNumber}
-									class="rounded bg-green-600 px-3 py-2 text-sm font-bold text-white hover:bg-green-500 lg:w-full lg:py-3 lg:text-xl lg:shadow-lg"
+									class="rounded bg-green-600 px-3 py-2 text-sm font-bold text-white hover:bg-green-500 sm:w-full sm:py-3 sm:text-xl sm:shadow-lg"
 									>🎤 Hô</button
 								>
 							{/if}
 							<button
 								onclick={checkWin}
-								class="animate-pulse rounded-full border-2 border-yellow-400 bg-red-600 px-4 py-2 text-lg font-black text-yellow-300 shadow-lg hover:animate-none hover:bg-red-500 lg:w-full lg:rounded-xl lg:py-4 lg:text-2xl"
+								class="animate-pulse rounded-full border-2 border-yellow-400 bg-red-600 px-4 py-2 text-lg font-black text-yellow-300 shadow-lg hover:animate-none hover:bg-red-500 sm:w-full sm:rounded-xl sm:py-4 sm:text-2xl"
 								>KINH!</button
 							>
 						{/if}
@@ -299,15 +311,15 @@
 						{#if isHost}
 							<button
 								onclick={resetGame}
-								class="rounded bg-gray-600 px-2 py-2 text-xs font-bold text-white shadow hover:bg-gray-500 lg:mt-4 lg:w-full lg:py-2 lg:text-sm"
+								class="rounded bg-gray-600 px-2 py-2 text-xs font-bold text-white shadow hover:bg-gray-500 sm:mt-4 sm:w-full sm:py-2 sm:text-sm"
 							>
-								🔄 <span class="hidden lg:inline">Huỷ Ván / Reset</span>
+								🔄 <span class="hidden sm:inline">Huỷ Ván / Reset</span>
 							</button>
 						{/if}
 					</div>
 				</div>
 
-				<div class="hidden flex-1 flex-col overflow-hidden bg-black/20 p-4 lg:flex">
+				<div class="hidden flex-1 flex-col overflow-hidden bg-black/20 p-4 sm:flex">
 					<h3 class="mb-2 text-xs font-bold text-yellow-500 uppercase">
 						Lịch sử số gọi ({history.length})
 					</h3>
@@ -323,29 +335,34 @@
 			</div>
 
 			<div
-				class="glass-scrollbar relative flex flex-1 flex-col items-center overflow-y-auto bg-red-800 p-2 lg:p-6"
+				class="glass-scrollbar relative flex flex-1 flex-col items-center overflow-y-auto bg-red-800 p-2 sm:p-6"
 			>
 				{#if gameState === 'BETTING'}
 					<div
-						class="animate-fade-in mt-4 w-full max-w-2xl rounded-xl border-2 border-yellow-500 bg-red-900/90 p-4 shadow-2xl backdrop-blur-md lg:mt-20 lg:p-6"
+						class="animate-fade-in mt-4 w-full max-w-2xl rounded-xl border-2 border-yellow-500 bg-red-900/90 p-4 shadow-2xl backdrop-blur-md sm:mt-20 sm:p-6"
 					>
-						<h3 class="mb-2 text-2xl font-bold text-yellow-400 uppercase lg:text-3xl">
+						<h3 class="mb-2 text-2xl font-bold text-yellow-400 uppercase sm:text-3xl">
 							🎟️ Sàn Giao Dịch
 						</h3>
-						<div class="mb-4 flex items-baseline justify-center gap-2 lg:mb-6">
+						<div class="mb-4 flex items-baseline justify-center gap-2 sm:mb-6">
 							<span class="text-white">Giá vé:</span>
-							<span class="text-3xl font-black text-yellow-300 drop-shadow-md lg:text-4xl"
+							<span
+								class="text-3xl font-black text-yellow-300 drop-shadow-md sm:text-3xl md:text-4xl lg:text-5xl"
 								>{currentTicketPrice}k</span
 							>
 						</div>
 
-						<div class="mb-4 border-b border-white/10 pb-4 lg:mb-8 lg:pb-6">
+						<div class="mb-4 border-b border-white/10 pb-4 sm:mb-8 sm:pb-6">
 							{#if myInfo?.hasTicket}
 								<div
-									class="mx-auto max-w-md rounded-lg border border-green-500 bg-green-900/40 p-3 text-green-300 shadow-inner lg:p-4"
+									class="mx-auto max-w-md rounded-lg border border-green-500 bg-green-900/40 p-3 text-green-300 shadow-inner sm:p-4"
 								>
-									<p class="flex items-center justify-center gap-2 text-lg font-bold lg:text-xl">
-										<span>✅</span> Đã vào việc!
+									<p class="flex items-center justify-center gap-2 text-lg font-bold sm:text-xl">
+										{#if myInfo?.isApproved}
+											<span>✅</span> Đã vào việc!
+										{:else}
+											<span class="text-yellow-400">⏳</span> Chờ duyệt...
+										{/if}
 									</p>
 								</div>
 							{:else}
@@ -363,34 +380,68 @@
 							{/if}
 						</div>
 
-						<div class="grid grid-cols-1 gap-3 text-sm lg:grid-cols-2 lg:gap-4">
-							<div class="rounded-lg bg-black/20 p-3 lg:p-4">
+						<div class="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2 sm:gap-4">
+							<div class="rounded-lg bg-black/20 p-3 sm:p-4">
 								<h4
 									class="mb-2 border-b border-green-500/50 pb-1 font-bold text-green-400 uppercase"
 								>
-									🚀 Đã Mua ({onlinePlayers.filter((p) => p.hasTicket).length})
+									🚀 Được Chơi ({onlinePlayers.filter((p) => p.hasTicket && p.isApproved).length})
 								</h4>
-								<ul class="glass-scrollbar max-h-32 overflow-y-auto text-left lg:max-h-40">
-									{#each onlinePlayers.filter((p) => p.hasTicket) as p}
+								<ul class="glass-scrollbar max-h-32 overflow-y-auto text-left sm:max-h-40">
+									{#each onlinePlayers.filter((p) => p.hasTicket && p.isApproved) as p}
 										<li
-											class="mb-1 flex items-center gap-2 rounded bg-green-900/30 px-2 py-1 text-green-100"
+											class="mb-1 flex items-center justify-between gap-2 rounded bg-green-900/30 px-2 py-1 text-green-100"
 										>
-											<span>🎫</span>
-											{p.name}
+											<div class="flex items-center gap-2">
+												<span>🎫</span>
+												{p.name}
+											</div>
+											{#if isHost && p.id !== socket.id}
+												<button
+													onclick={() => hostRevoke(p.id)}
+													class="rounded bg-yellow-600 px-3 py-2 text-sm font-bold text-white hover:bg-yellow-500"
+													title="Hạ cấp về Chờ duyệt"
+												>
+													⬇️
+												</button>
+											{/if}
 										</li>
 									{/each}
 								</ul>
 							</div>
-							<div class="rounded-lg bg-black/20 p-3 lg:p-4">
-								<h4 class="mb-2 border-b border-red-500/50 pb-1 font-bold text-red-400 uppercase">
-									🐌 Đang Lề Mề ({onlinePlayers.filter((p) => !p.hasTicket).length})
+							<div class="rounded-lg bg-black/20 p-3 sm:p-4">
+								<h4
+									class="mb-2 border-b border-yellow-500/50 pb-1 font-bold text-yellow-400 uppercase"
+								>
+									⏳ Chờ Duyệt ({onlinePlayers.filter((p) => p.hasTicket && !p.isApproved).length})
 								</h4>
-								<ul class="glass-scrollbar max-h-32 overflow-y-auto text-left lg:max-h-40">
-									{#each onlinePlayers.filter((p) => !p.hasTicket) as p}
+								<ul class="glass-scrollbar max-h-32 overflow-y-auto text-left sm:max-h-40">
+									{#each onlinePlayers.filter((p) => p.hasTicket && !p.isApproved) as p}
 										<li
-											class="mb-1 flex items-center gap-2 rounded bg-red-900/30 px-2 py-1 text-red-100"
+											class="mb-1 flex items-center justify-between gap-2 rounded bg-yellow-900/30 px-2 py-1 text-yellow-100"
 										>
-											⏳ {p.name}
+											<div class="flex items-center gap-2">
+												<span>🎫</span>
+												{p.name}
+											</div>
+											{#if isHost}
+												<div class="flex gap-2">
+													<button
+														onclick={() => hostApprove(p.id)}
+														class="rounded bg-green-600 px-3 py-2 text-sm font-bold text-white hover:bg-green-500"
+														title="Duyệt"
+													>
+														✅
+													</button>
+													<button
+														onclick={() => hostRevoke(p.id)}
+														class="rounded bg-red-600 px-3 py-2 text-sm font-bold text-white hover:bg-red-500"
+														title="Từ chối/Hoàn tiền"
+													>
+														❌
+													</button>
+												</div>
+											{/if}
 										</li>
 									{/each}
 								</ul>
@@ -398,27 +449,27 @@
 						</div>
 
 						{#if isHost}
-							<div class="mt-4 border-t border-white/20 pt-4 lg:mt-6 lg:pt-6">
+							<div class="mt-4 border-t border-white/20 pt-4 sm:mt-6 sm:pt-6">
 								<button
 									onclick={hostStartGame}
-									class="mx-auto w-full max-w-md transform rounded-lg bg-linear-to-r from-yellow-500 to-orange-500 py-3 text-xl font-black text-red-900 shadow-xl transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 lg:py-4 lg:text-2xl"
-									disabled={onlinePlayers.filter((p) => p.hasTicket).length === 0}
+									class="mx-auto w-full max-w-md transform rounded-lg bg-linear-to-r from-yellow-500 to-orange-500 py-3 text-xl font-black text-red-900 shadow-xl transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 sm:py-4 sm:text-xl md:text-2xl xl:text-3xl"
+									disabled={onlinePlayers.filter((p) => p.hasTicket && p.isApproved).length === 0}
 								>
-									{onlinePlayers.filter((p) => p.hasTicket).length === 0
-										? 'Chờ người mua vé...'
+									{onlinePlayers.filter((p) => p.hasTicket && p.isApproved).length === 0
+										? 'Chờ duyệt người chơi...'
 										: '▶️ BẮT ĐẦU QUAY SỐ'}
 								</button>
 							</div>
 						{/if}
 					</div>
-				{:else if myInfo?.hasTicket && mySheet}
+				{:else if myInfo?.hasTicket && mySheet && myInfo?.isApproved}
 					<div
-						class="mt-2 w-full max-w-3xl origin-top scale-95 transition-transform lg:mt-20 lg:scale-100"
+						class="mt-2 w-full max-w-3xl origin-top scale-95 transition-transform sm:mt-20 sm:scale-100"
 					>
 						<TicketBoard sheet={mySheet} />
 					</div>
-				{:else if !myInfo?.hasTicket && gameState === 'PLAYING'}
-					<div class="mt-10 flex flex-col items-center justify-center p-4 text-yellow-200 lg:mt-20">
+				{:else if (!myInfo?.hasTicket || (myInfo?.hasTicket && !myInfo?.isApproved)) && gameState === 'PLAYING'}
+					<div class="mt-10 flex flex-col items-center justify-center p-4 text-yellow-200 sm:mt-20">
 						<div class="mb-4 animate-bounce text-6xl">🍿</div>
 						<h3 class="text-2xl font-bold text-yellow-400 uppercase">Ván Đang Diễn Ra</h3>
 						<p class="mt-2 text-sm text-white/80">Bạn vui lòng ngồi xem mọi người chơi nhé.</p>
@@ -432,23 +483,23 @@
 			</div>
 
 			<div
-				class="z-40 flex h-48 w-full flex-none flex-col border-t-2 border-yellow-600 bg-red-950 shadow-[0_-5px_15px_rgba(0,0,0,0.3)] lg:h-full lg:w-1/4 lg:border-t-0 lg:border-l-2 lg:shadow-none"
+				class="z-40 flex h-52 w-full flex-none flex-col border-t-2 border-yellow-600 bg-red-950 shadow-[0_-5px_15px_rgba(0,0,0,0.3)] sm:h-full sm:w-1/4 sm:border-t-0 sm:border-l-2 sm:shadow-none"
 			>
 				<div
-					class="flex items-center justify-between border-b border-yellow-800 bg-red-900/80 px-3 py-1.5 text-xs font-bold text-yellow-400 uppercase lg:p-2"
+					class="flex items-center justify-between border-b border-yellow-800 bg-red-900/80 px-3 py-1.5 text-xs font-bold text-yellow-400 uppercase sm:p-2"
 				>
 					<span class="flex items-center gap-2">
 						💬 Sòng Chat
-						<span class="rounded bg-green-600 px-1.5 py-0.5 text-[10px] text-white lg:hidden"
+						<span class="rounded bg-green-600 px-1.5 py-0.5 text-[10px] text-white sm:hidden"
 							>{onlinePlayers.length} Online</span
 						>
 					</span>
-					<span class="hidden text-[10px] text-yellow-200/50 lg:block"
+					<span class="hidden text-[10px] text-yellow-200/50 sm:block"
 						>Ví bạn: {myInfo?.balance}k</span
 					>
 				</div>
 
-				<div class="hidden h-1/3 flex-col border-b border-yellow-600/50 bg-black/20 p-2 lg:flex">
+				<div class="hidden h-1/3 flex-col border-b border-yellow-600/50 bg-black/20 p-2 sm:flex">
 					<ul class="glass-scrollbar max-h-[400px] flex-1 overflow-y-auto pr-1">
 						{#each sortedPlayers as p, i}
 							<li
@@ -472,10 +523,10 @@
 					</ul>
 				</div>
 
-				<div class="flex flex-1 flex-col overflow-hidden bg-black/20 lg:bg-red-900/30">
+				<div class="flex flex-1 flex-col overflow-hidden bg-black/20 sm:bg-red-900/30">
 					<div
 						bind:this={chatBoxRef}
-						class="glass-scrollbar min-h-0 flex-1 space-y-1 overflow-y-auto p-2 text-left lg:space-y-2 lg:p-3"
+						class="glass-scrollbar min-h-0 flex-1 space-y-1 overflow-y-auto p-2 text-left sm:space-y-2 sm:p-3"
 					>
 						{#each messages as msg}
 							{#if msg.type === 'system'}
@@ -490,7 +541,7 @@
 									{msg.content}
 								</div>
 							{:else}
-								<div class="text-xs lg:text-sm">
+								<div class="text-xs md:text-sm">
 									<span class="font-bold text-yellow-400">{msg.sender}:</span>
 									<span class="wrap-break-word text-white">{msg.content}</span>
 								</div>
@@ -503,7 +554,7 @@
 							type="text"
 							bind:value={chatInput}
 							placeholder="Chém gió..."
-							class="w-full rounded border border-red-700 bg-black/30 px-2 py-1.5 text-xs text-white focus:border-yellow-500 focus:outline-none lg:px-3 lg:py-2 lg:text-sm"
+							class="w-full rounded border border-red-700 bg-black/30 px-2 py-1.5 text-xs text-white focus:border-yellow-500 focus:outline-none sm:px-3 sm:py-2 sm:text-sm"
 							onkeydown={(e) => e.key === 'Enter' && sendChat()}
 						/>
 					</div>
