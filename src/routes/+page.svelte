@@ -449,7 +449,7 @@
 				</div>
 
 				<div class="hidden h-1/3 flex-col border-b border-yellow-600/50 bg-black/20 p-2 lg:flex">
-					<ul class="glass-scrollbar flex-1 overflow-y-auto pr-1">
+					<ul class="glass-scrollbar max-h-[400px] flex-1 overflow-y-auto pr-1">
 						{#each sortedPlayers as p, i}
 							<li
 								class="mb-1 flex items-center justify-between rounded bg-white/5 p-2 text-sm hover:bg-white/10"
@@ -472,10 +472,10 @@
 					</ul>
 				</div>
 
-				<div class="flex flex-1 flex-col bg-black/20 lg:bg-red-900/30">
+				<div class="flex flex-1 flex-col overflow-hidden bg-black/20 lg:bg-red-900/30">
 					<div
 						bind:this={chatBoxRef}
-						class="glass-scrollbar flex-1 space-y-1 overflow-y-auto p-2 text-left lg:space-y-2 lg:p-3"
+						class="glass-scrollbar min-h-0 flex-1 space-y-1 overflow-y-auto p-2 text-left lg:space-y-2 lg:p-3"
 					>
 						{#each messages as msg}
 							{#if msg.type === 'system'}
