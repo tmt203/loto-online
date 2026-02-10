@@ -211,10 +211,7 @@ export default function injectSocketIO(server: HttpServer) {
 					player.isApproved = false;
 
 					broadcastGameState();
-					broadcastSystemLog(
-						`❌ ${player.name} bị từ chối/kicked và được hoàn tiền vé.`,
-						'warning'
-					);
+					broadcastSystemLog(`❌ ${player.name} bị "đá" ra khỏi phòng.`, 'warning');
 				}
 			}
 		});
